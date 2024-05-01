@@ -1,19 +1,26 @@
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Scanner;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     static Scanner input = new Scanner(System.in);
-
+    public static ArrayList<Task> taskList = new ArrayList<>();
 
     public static void main(String[] args) {
+        deSerializeSimple();
         Scanner input = new Scanner(System.in);
-
         int task = prompt(input);
-        while(true){
-            switch (task){
+        while (true) {
+            switch (task) {
                 case 1:
                     Collections.sort(taskList);
                     newTask(input);
@@ -36,30 +43,27 @@ public class Main {
                     makePriority();
                     task = prompt(input);
                 case 0:
+                    serializeSimple();
                     System.exit(0);
                     break;
                 default:
                     System.out.println("enter another value");
                     prompt(input);
                     break;
-
-
             }
-
-
-
         }
-
     }
-    public static int prompt(Scanner input){
+
+    public static int prompt(Scanner input) {
         System.out.println("Please Select a Task. \n1.) Add a task \n2.) Remove a task \n3.) Update a task \n4.)List all tasks \n0.) Exit \nWhich task would you like to assign?");
         int task = input.nextInt();
         input.nextLine();
         return task;
     }
+
     //Here the newTask method asks what task they want to add then waits for the users feedback while also keeping it in a string
-    public static Task newTask(Scanner input){
-        while(true) {
+    public static Task newTask(Scanner input) {
+        while (true) {
             try {
                 System.out.println("What is the name of the task");
                 String name = input.nextLine();
@@ -78,9 +82,9 @@ public class Main {
     }
 
     //prints the statement of which task the user wants to get removed then waits for the users input and then removes said task
-    public static void deleteTask(Scanner input){
+    public static void deleteTask(Scanner input) {
         System.out.println("What do you wish to remove?");
-        int taskRemove = input.nextInt()-1;
+        int taskRemove = input.nextInt() - 1;
         input.nextLine();
         taskList.remove(taskRemove);
         taskList.forEach(System.out::println);
@@ -88,23 +92,19 @@ public class Main {
 
     }
 
-    public static ArrayList<Task> taskList = new ArrayList<>();
 
     //Here it lists the tasks that are listed and then you can decide which one to change based of the index value shown next to each task
-    public static void changeTask(Scanner input){
+    public static void changeTask(Scanner input) {
         System.out.println(taskList);
         System.out.println("Which task do you want to update");
-        int newList = input.nextInt()-1;
+        int newList = input.nextInt() - 1;
         Task newTask = taskList.get(newList);
         System.out.println("Add an appropriate description... ");
         String description = input.nextLine();
         newTask.setDescription(description);
         taskList.set(newList, newTask);
-
-
-
-
     }
+
     //ArrayList allows any value to get in so the list of task can be listed while also showing the index
     public static ArrayList<Task> list() {
         try {
@@ -130,7 +130,7 @@ public class Main {
                     int wantedPriority = input.nextInt();
                     input.nextLine();
                     boolean isPriorInList = false;
-                    for(Task task: taskList) {
+                    for (Task task : taskList) {
                         if (task.getPriority() == wantedPriority) {
                             int i = taskList.indexOf(task);
                             System.out.println("Index value: " + i + " | " + "Task Name: " + taskList.get(i).getName() +
@@ -138,23 +138,18 @@ public class Main {
                                     " Priority: " + taskList.get(i).getPriority() + "\n");
                             isPriorInList = true;
                         }
-
-
-
                     }
                     break;
-
-
             }
         } catch (Exception e) {
             System.out.println("Error!");
         }
-
         return taskList;
     }
-    public static void makePriority(){
+
+    public static void makePriority() {
         System.out.println(taskList);
-        System.out.println("what task priority would you like to change... 0-"+taskList.size());
+        System.out.println("what task priority would you like to change... 0-" + taskList.size());
         int taskSelected = input.nextInt();
         input.nextLine();
         Task makePriority = taskList.get(taskSelected);
@@ -162,4 +157,28 @@ public class Main {
         int newPriority = input.nextInt();
         input.nextLine();
         makePriority.setPriority(newPriority);
-    }}
+    }
+
+     static void serializeSimple() {
+        Gson gson = new Gson();
+        try (FileWriter writer = new FileWriter("tasks.json")) {
+            gson.toJson(taskList, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void deSerializeSimple() {
+        try (FileReader reader = new FileReader("tasks.json")) {
+            JsonParser parser = new JsonParser();
+            JsonElement jsonElement = parser.parse(reader);
+            Gson gson = new Gson();
+            Type type = new TypeToken<ArrayList<Task>>() {
+            }.getType();
+            taskList = gson.fromJson(jsonElement, type);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
